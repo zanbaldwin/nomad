@@ -143,8 +143,8 @@ runcmd:
     - usermod -aG docker ubuntu # Add ubuntu user to docker group
 
     # Install Consul and Nomad
-    - CONSUL_VERSION="1.18.1" # !!! Check for latest stable version before deploying !!!
-    - NOMAD_VERSION="1.7.6"   # !!! Check for latest stable version before deploying !!!
+    - CONSUL_VERSION="1.21.1" # !!! Check for latest stable version before deploying !!!
+    - NOMAD_VERSION="1.10.2"  # !!! Check for latest stable version before deploying !!!
     - curl -LO https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
     - curl -LO https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip
     - unzip consul_${CONSUL_VERSION}_linux_amd64.zip -d /usr/local/bin

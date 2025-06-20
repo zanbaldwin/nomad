@@ -98,7 +98,7 @@ resource "hcloud_volume" "stateful_garage_data" {
 resource "hcloud_server" "nomad_clients_stateful" {
     count       = var.nomad_client_stateful_count
     name        = "${var.project_name}-nomad-client-stateful-${count.index}"
-    image       = "ubuntu-22.04"
+    image       = "ubuntu-24.04"
     server_type = var.server_type_nomad_client_stateful
     location    = var.region
     ssh_keys    = [data.hcloud_ssh_key.default.id]
@@ -149,7 +149,7 @@ resource "hcloud_server" "nomad_clients_stateful" {
 resource "hcloud_server" "nomad_clients_stateless" {
     count       = var.nomad_client_stateless_count
     name        = "${var.project_name}-nomad-client-stateless-${count.index}"
-    image       = "ubuntu-22.04"
+    image       = "ubuntu-24.04"
     server_type = var.server_type_nomad_client_stateless
     location    = var.region
     ssh_keys    = [data.hcloud_ssh_key.default.id]
