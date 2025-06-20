@@ -27,7 +27,7 @@ resource "hcloud_network" "nomad_cluster_network" {
 resource "hcloud_network_subnet" "nomad_cluster_subnet" {
   network_id   = hcloud_network.nomad_cluster_network.id
   type         = "cloud"
-  network_zone = var.region
+  network_zone = "eu-central"
   ip_range     = "10.0.0.0/24"
 }
 

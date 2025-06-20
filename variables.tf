@@ -15,8 +15,9 @@ variable "region" {
   type        = string
   default     = "fsn1"
   validation {
-    condition     = contains(["fsn1", "nbg1", "hel1", "ash", "hil"], var.region)
-    error_message = "Region must be one of: fsn1, nbg1, hel1, ash, hil."
+    # Valid regions within the `eu-central` network zone.
+    condition     = contains(["fsn1", "nbg1", "hel1"], var.region)
+    error_message = "Region must be one of: fsn1, nbg1, hel1."
   }
 }
 
@@ -41,10 +42,10 @@ variable "server_type_nomad_client_stateless" {
 variable "volume_size_stateful" {
   description = "Size of the volume for stateful data (GB)"
   type        = number
-  default     = 5
+  default     = 10
   validation {
-    condition     = var.volume_size_stateful >= 5
-    error_message = "Stateful volume size must be at least 5 GB."
+    condition     = var.volume_size_stateful >= 10 && var.volume_size_stateful <= 10240
+    error_message = "Stateful volume size must be between 10 and 10240 GB."
   }
 }
 
