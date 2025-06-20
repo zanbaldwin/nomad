@@ -19,6 +19,24 @@ write_files:
             ui_config {
                 enabled = true # Can disable for clients if not needed
             }
+    -   path: /etc/systemd/system/consul.service
+        permissions: '0644'
+        content: |
+            [Unit]
+            Description=HashiCorp Consul - A service mesh solution
+            Documentation=https://www.consul.io/
+            Requires=network-online.target
+            After=network-online.target
+
+            [Service]
+            ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/ -data-dir=/opt/consul/data
+            ExecReload=/usr/local/bin/consul reload
+            KillMode=process
+            Restart=on-failure
+            LimitNOFILE=65536
+
+            [Install]
+            WantedBy=multi-user.target
     -   path: /etc/nomad.d/nomad.hcl
         permissions: '0644'
         content: |
@@ -54,25 +72,45 @@ write_files:
                     }
                 }
                 % endif ~}
-                }
+            }
 
             addresses {
-            http = "0.0.0.0"
-            rpc  = "0.0.0.0"
-            serf = "0.0.0.0"
+                http = "0.0.0.0"
+                rpc  = "0.0.0.0"
+                serf = "0.0.0.0"
             }
 
             advertise {
-            http = "${node_private_ip}:4646"
-            rpc  = "${node_private_ip}:4647"
-            serf = "${node_private_ip}:4648"
+                http = "${node_private_ip}:4646"
+                rpc  = "${node_private_ip}:4647"
+                serf = "${node_private_ip}:4648"
             }
 
             consul {
-            address = "${node_private_ip}:8500" # Self-reference Consul running on this client
-            client_auto_join = true
-            auto_advertise = true
+                address = "${node_private_ip}:8500" # Self-reference Consul running on this client
+                client_auto_join = true
+                auto_advertise = true
             }
+    -   path: /etc/systemd/system/nomad.service
+        permissions: '0644'
+        content: |
+            [Unit]
+            Description=HashiCorp Nomad
+            Documentation=https://nomadproject.io/
+            Wants=network-online.target
+            After=network-online.target consul.service
+
+            [Service]
+            ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d/nomad.hcl
+            ExecReload=/bin/kill -HUP $MAINPID
+            LimitNOFILE=65536
+            Restart=on-failure
+            RestartSec=5
+            Delegate=yes
+            KillMode=process
+
+            [Install]
+            WantedBy=multi-user.target
 
 runcmd:
     - set -ex
@@ -117,48 +155,7 @@ runcmd:
     - mkdir -p /opt/consul/data
     - mkdir -p /opt/nomad/data
 
-    # Create systemd service files for Consul
-    -   |
-        cat <<EOF > /etc/systemd/system/consul.service
-            [Unit]
-            Description=HashiCorp Consul - A service mesh solution
-            Documentation=https://www.consul.io/
-            Requires=network-online.target
-            After=network-online.target
-
-            [Service]
-            ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/ -data-dir=/opt/consul/data
-            ExecReload=/usr/local/bin/consul reload
-            KillMode=process
-            Restart=on-failure
-            LimitNOFILE=65536
-
-            [Install]
-            WantedBy=multi-user.target
-            EOF
-
-    # Create systemd service files for Nomad
-    -   |
-        cat <<EOF > /etc/systemd/system/nomad.service
-            [Unit]
-            Description=HashiCorp Nomad
-            Documentation=https://nomadproject.io/
-            Wants=network-online.target
-            After=network-online.target consul.service
-
-            [Service]
-            ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d/nomad.hcl
-            ExecReload=/bin/kill -HUP $MAINPID
-            LimitNOFILE=65536
-            Restart=on-failure
-            RestartSec=5
-            Delegate=yes
-            KillMode=process
-
-            [Install]
-            WantedBy=multi-user.target
-            EOF
-
+    # SystemD Services
     -   systemctl daemon-reload
     -   systemctl enable consul.service
     -   systemctl start consul.service
