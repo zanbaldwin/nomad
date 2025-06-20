@@ -23,6 +23,12 @@ write_files:
             }
             # Enable HTTP API for management
             enable_http_cli = true
+            # ACL Configuration
+            acl = {
+                enabled = true
+                default_policy = "deny"
+                enable_token_persistence = true
+            }
     -   path:  /etc/systemd/system/consul.service
         permissions: '0644'
         content: |
@@ -68,6 +74,10 @@ write_files:
                 rpc  = "${node_private_ip}:4647"
                 serf = "${node_private_ip}:4648"
             }
+            # ACL Configuration
+            acl {
+                enabled = true
+            }
             consul {
                 address = "${node_private_ip}:8500" # Self-reference Consul running on this server
                 client_auto_join = true
@@ -93,6 +103,67 @@ write_files:
 
             [Install]
             WantedBy=multi-user.target
+    -   path: /opt/bootstrap-acls.sh
+        permissions: '0755'
+        content: |
+            #!/bin/bash
+            set -e
+
+            echo "Waiting for Consul to be ready..."
+            while ! consul members > /dev/null 2>&1; do
+                sleep 5
+            done
+
+            echo "Waiting for Nomad to be ready..."
+            while ! nomad node status > /dev/null 2>&1; do
+                sleep 5
+            done
+
+            # Bootstrap Consul ACLs (only run on first server)
+            if [ "${node_private_ip}" = "$(echo '${consul_server_ips}' | jq -r '.[0]')" ]; then
+                echo "Bootstrapping Consul ACLs..."
+                if ! consul acl bootstrap > /tmp/consul-bootstrap.json 2>/dev/null; then
+                    echo "Consul ACL already bootstrapped or failed"
+                else
+                    echo "Consul ACL bootstrap successful"
+                    CONSUL_TOKEN=$(cat /tmp/consul-bootstrap.json | jq -r '.SecretID')
+                    echo "CONSUL_HTTP_TOKEN=$CONSUL_TOKEN" >> /etc/environment
+                    export CONSUL_HTTP_TOKEN="$CONSUL_TOKEN"
+
+                    # Create Nomad agent policy for Consul integration
+                    consul acl policy create \
+                        -name "nomad-agent" \
+                        -description "Nomad Agent Policy" \
+                        -rules 'agent_prefix "" { policy = "write" }
+                                node_prefix "" { policy = "write" }
+                                service_prefix "" { policy = "write" }
+                                acl = "write"'
+
+                    # Create token for Nomad agents
+                    consul acl token create \
+                        -description "Nomad Agent Token" \
+                        -policy-name "nomad-agent" > /tmp/nomad-consul-token.json
+
+                    NOMAD_CONSUL_TOKEN=$(cat /tmp/nomad-consul-token.json | jq -r '.SecretID')
+                    echo "NOMAD_CONSUL_TOKEN=$NOMAD_CONSUL_TOKEN" >> /etc/environment
+                fi
+
+                # Bootstrap Nomad ACLs
+                echo "Bootstrapping Nomad ACLs..."
+                if ! nomad acl bootstrap > /tmp/nomad-bootstrap.json 2>/dev/null; then
+                    echo "Nomad ACL already bootstrapped or failed"
+                else
+                    echo "Nomad ACL bootstrap successful"
+                    NOMAD_TOKEN=$(cat /tmp/nomad-bootstrap.json | jq -r '.SecretID')
+                    echo "NOMAD_TOKEN=$NOMAD_TOKEN" >> /etc/environment
+
+                    # Save tokens to files for easy access
+                    echo "$CONSUL_TOKEN" > /opt/consul-root-token
+                    echo "$NOMAD_TOKEN" > /opt/nomad-root-token
+                    echo "$NOMAD_CONSUL_TOKEN" > /opt/nomad-consul-token
+                    chmod 0600 /opt/*-token
+                fi
+            fi
 
 runcmd:
     - set -ex
@@ -101,7 +172,7 @@ runcmd:
 
     # Install Docker (Nomad Servers don't *need* Docker, but it's often convenient for management tools)
     - apt-get update
-    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release jq
     - mkdir -p /etc/apt/keyrings
     - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -129,3 +200,6 @@ runcmd:
     - systemctl enable nomad.service
     - systemctl start nomad.service
     - echo "Nomad server setup complete!"
+
+    # Bootstrap ACLs (run in background to avoid blocking cloud-init)
+    - nohup /opt/bootstrap-acls.sh > /var/log/bootstrap-acls.log 2>&1 &
