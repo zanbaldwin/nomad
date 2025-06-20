@@ -112,11 +112,11 @@ runcmd:
     # Install Consul and Nomad
     - CONSUL_VERSION="1.21.1" # !!! Check for latest stable version before deploying !!!
     - NOMAD_VERSION="1.10.2"   # !!! Check for latest stable version before deploying !!!
-    - curl -LO https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
-    - curl -LO https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip
-    - unzip consul_${CONSUL_VERSION}_linux_amd64.zip -d /usr/local/bin
-    - unzip nomad_${NOMAD_VERSION}_linux_amd64.zip -d /usr/local/bin
-    - rm consul_${CONSUL_VERSION}_linux_amd64.zip nomad_${NOMAD_VERSION}_linux_amd64.zip
+    - curl -LO https://releases.hashicorp.com/consul/$${CONSUL_VERSION}/consul_$${CONSUL_VERSION}_linux_amd64.zip
+    - curl -LO https://releases.hashicorp.com/nomad/$${NOMAD_VERSION}/nomad_$${NOMAD_VERSION}_linux_amd64.zip
+    - unzip consul_$${CONSUL_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - unzip nomad_$${NOMAD_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - rm consul_$${CONSUL_VERSION}_linux_amd64.zip nomad_$${NOMAD_VERSION}_linux_amd64.zip
 
     # Create data directories
     - mkdir -p /opt/consul/data

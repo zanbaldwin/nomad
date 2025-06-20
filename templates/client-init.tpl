@@ -13,8 +13,8 @@ write_files:
             client_addr = "0.0.0.0"
             bind_addr = "${node_private_ip}"
             advertise_addr = "${node_private_ip}"
-            # Use JSON-encoded list from Terraform for start_join
-            start_join = ${consul_server_ips}
+            # Use JSON-encoded list from Terraform for retry_join
+            retry_join = ${consul_server_ips}
             server = false
             ui_config {
                 enabled = true # Can disable for clients if not needed
@@ -87,7 +87,7 @@ write_files:
             }
 
             consul {
-                address = "${node_private_ip}:8500" # Self-reference Consul running on this client
+                address = "127.0.0.1:8500" # Connect to local Consul agent
                 client_auto_join = true
                 auto_advertise = true
             }
@@ -120,16 +120,16 @@ runcmd:
     # Mount Hetzner volumes for stateful clients
     % if mount_volumes ~}
     - echo "Mounting volumes..."
-    - mkdir -p /mnt/data/postgres
-    - mkdir -p /mnt/data/garage
+    %{ for idx, mount_point in volume_mount_points ~}
+    - mkdir -p ${mount_point}
+    %{ endfor ~}
     # Format and mount volumes. Hetzner volumes are already formatted if `format = "ext4"` in TF.
     # So we just mount them.
     # Use device by-id for stable paths
-    - mount -o discard,defaults /dev/disk/by-id/scsi-0HC_Volume_${volume_names[0]} ${volume_mount_points[0]}
-    - mount -o discard,defaults /dev/disk/by-id/scsi-0HC_Volume_${volume_names[1]} ${volume_mount_points[1]}
-    # Add to fstab for persistence across reboots
-    - echo "/dev/disk/by-id/scsi-0HC_Volume_${volume_names[0]} ${volume_mount_points[0]} ext4 defaults,nofail 0 2" | tee -a /etc/fstab
-    - echo "/dev/disk/by-id/scsi-0HC_Volume_${volume_names[1]} ${volume_mount_points[1]} ext4 defaults,nofail 0 2" | tee -a /etc/fstab
+    %{ for idx, volume_name in volume_names ~}
+    - mount -o discard,defaults /dev/disk/by-id/scsi-0HC_Volume_${volume_name} ${volume_mount_points[idx]}
+    - echo "/dev/disk/by-id/scsi-0HC_Volume_${volume_name} ${volume_mount_points[idx]} ext4 defaults,nofail 0 2" | tee -a /etc/fstab
+    %{ endfor ~}
     % endif ~}
 
     # Install Docker
@@ -145,11 +145,11 @@ runcmd:
     # Install Consul and Nomad
     - CONSUL_VERSION="1.21.1" # !!! Check for latest stable version before deploying !!!
     - NOMAD_VERSION="1.10.2"  # !!! Check for latest stable version before deploying !!!
-    - curl -LO https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
-    - curl -LO https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip
-    - unzip consul_${CONSUL_VERSION}_linux_amd64.zip -d /usr/local/bin
-    - unzip nomad_${NOMAD_VERSION}_linux_amd64.zip -d /usr/local/bin
-    - rm consul_${CONSUL_VERSION}_linux_amd64.zip nomad_${NOMAD_VERSION}_linux_amd64.zip
+    - curl -LO https://releases.hashicorp.com/consul/$${CONSUL_VERSION}/consul_$${CONSUL_VERSION}_linux_amd64.zip
+    - curl -LO https://releases.hashicorp.com/nomad/$${NOMAD_VERSION}/nomad_$${NOMAD_VERSION}_linux_amd64.zip
+    - unzip consul_$${CONSUL_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - unzip nomad_$${NOMAD_VERSION}_linux_amd64.zip -d /usr/local/bin
+    - rm consul_$${CONSUL_VERSION}_linux_amd64.zip nomad_$${NOMAD_VERSION}_linux_amd64.zip
 
     # Create data directories
     - mkdir -p /opt/consul/data
