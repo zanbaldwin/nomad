@@ -1,0 +1,78 @@
+# Traefik static configuration file
+global:
+    checkNewVersion: false
+    sendAnonymousUsage: false
+
+serversTransport:
+    insecureSkipVerify: true
+
+entryPoints:
+    web:
+        address: ':80'
+        http:
+            redirections:
+                entryPoint:
+                    to: 'websecure'
+                    scheme: 'https'
+                    permanent: true
+
+    websecure:
+        address: ':443'
+
+providers:
+    consul:
+        endpoints:
+            - '127.0.0.1:8500'
+        rootKey: 'traefik'
+
+    consulCatalog:
+        prefix: 'traefik'
+        exposedByDefault: false
+        endpoints:
+            - '127.0.0.1:8500'
+
+certificatesResolvers:
+    letsencrypt:
+        acme:
+            tlsChallenge: {}
+            email: 'admin@example.com'  # Change this to your email
+            storage: "consul"
+            caServer: 'https://acme-v02.api.letsencrypt.org/directory'
+            keyType: 'EC256'
+
+api:
+    dashboard: true
+    insecure: true
+
+http:
+    services:
+        nomad-servers:
+            loadBalancer:
+                servers:
+                    - url: 'http://10.0.0.16:4646'
+        consul-servers:
+            loadBalancer:
+                servers:
+                    - url: 'http://10.0.0.16:8500'
+
+    routers:
+        nomad-ui:
+            rule: 'Host(`nomad.example.com`)'
+            entryPoints:
+                - 'websecure'
+            service: 'nomad-servers'
+            tls:
+                certResolver: 'letsencrypt'
+
+        consul-ui:
+            rule: 'Host(`consul.example.com`)'
+            entryPoints:
+                - 'websecure'
+            service: 'consul-servers'
+            tls:
+                certResolver: 'letsencrypt'
+
+log:
+    level: 'INFO'
+
+accessLog: {}
