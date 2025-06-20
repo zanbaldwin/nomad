@@ -46,7 +46,7 @@ output "consul_ui_url" {
 output "acl_token_retrieval" {
     description = "Commands to retrieve ACL tokens after deployment"
     value = {
-        nomad_token = "ssh ubuntu@${hcloud_server.nomad_servers[0].ipv4_address} 'cat /opt/nomad-root-token'"
-        consul_token = "ssh ubuntu@${hcloud_server.nomad_servers[0].ipv4_address} 'cat /opt/consul-root-token'"
+        nomad_token = "ssh root@${hcloud_server.nomad_servers[0].ipv4_address} 'cat /opt/nomad-root-token'"
+        consul_token = "ssh root@${hcloud_server.nomad_servers[0].ipv4_address} 'cat /opt/consul-root-token'"
     }
 }

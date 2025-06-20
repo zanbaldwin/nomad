@@ -124,14 +124,14 @@ write_files:
             
             echo "Waiting for ACL bootstrap to complete on first server..."
             while true; do
-                if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@$FIRST_SERVER "test -f /opt/nomad-consul-token" 2>/dev/null; then
+                if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@$FIRST_SERVER "test -f /opt/nomad-consul-token" 2>/dev/null; then
                     break
                 fi
                 sleep 10
             done
             
             # Get tokens from the first server
-            NOMAD_CONSUL_TOKEN=$(ssh -o StrictHostKeyChecking=no ubuntu@$FIRST_SERVER "cat /opt/nomad-consul-token")
+            NOMAD_CONSUL_TOKEN=$(ssh -o StrictHostKeyChecking=no root@$FIRST_SERVER "cat /opt/nomad-consul-token")
             
             # Configure Consul agent token
             consul acl set-agent-token -token="$NOMAD_CONSUL_TOKEN" agent "$NOMAD_CONSUL_TOKEN"
@@ -166,7 +166,7 @@ runcmd:
     - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
     - apt-get update
     - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    - usermod -aG docker ubuntu # Add ubuntu user to docker group
+    # Docker is available for root user
 
     # Install Consul and Nomad
     - CONSUL_VERSION="1.21.1" # !!! Check for latest stable version before deploying !!!
