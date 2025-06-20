@@ -17,7 +17,8 @@ write_files:
             retry_join = ${consul_server_ips}
             server = false
             ui_config {
-                enabled = true # Can disable for clients if not needed
+                # Can disable for clients if not needed
+                enabled = true
             }
             # ACL Configuration
             acl = {
@@ -118,10 +119,10 @@ write_files:
         content: |
             #!/bin/bash
             set -e
-            
+
             # Get the first server IP for token retrieval
             FIRST_SERVER=$(echo '${consul_server_ips}' | jq -r '.[0]')
-            
+
             echo "Waiting for ACL bootstrap to complete on first server..."
             while true; do
                 if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@$FIRST_SERVER "test -f /opt/nomad-consul-token" 2>/dev/null; then
@@ -129,13 +130,13 @@ write_files:
                 fi
                 sleep 10
             done
-            
+
             # Get tokens from the first server
             NOMAD_CONSUL_TOKEN=$(ssh -o StrictHostKeyChecking=no root@$FIRST_SERVER "cat /opt/nomad-consul-token")
-            
+
             # Configure Consul agent token
             consul acl set-agent-token -token="$NOMAD_CONSUL_TOKEN" agent "$NOMAD_CONSUL_TOKEN"
-            
+
             echo "ACL tokens configured successfully"
 
 runcmd:
@@ -160,7 +161,7 @@ runcmd:
 
     # Install Docker
     - apt-get update
-    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release jq
+    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release jq unzip
     - mkdir -p /etc/apt/keyrings
     - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -188,6 +189,6 @@ runcmd:
     -   systemctl enable nomad.service
     -   systemctl start nomad.service
     -   echo "Nomad client setup complete!"
-    
+
     # Setup ACL tokens (run in background)
     -   nohup /opt/setup-acl-tokens.sh > /var/log/setup-acl-tokens.log 2>&1 &

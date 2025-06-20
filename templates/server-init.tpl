@@ -19,10 +19,9 @@ write_files:
             # Use JSON-encoded list from Terraform for start_join to form cluster
             retry_join = ${consul_server_ips}
             ui_config {
+                # HTTP API is enabled by default
                 enabled = true
             }
-            # Enable HTTP API for management
-            enable_http_cli = true
             # ACL Configuration
             acl = {
                 enabled = true
@@ -172,7 +171,7 @@ runcmd:
 
     # Install Docker (Nomad Servers don't *need* Docker, but it's often convenient for management tools)
     - apt-get update
-    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release jq
+    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release jq unzip
     - mkdir -p /etc/apt/keyrings
     - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
