@@ -48,7 +48,7 @@ resource "hcloud_server" "nomad_servers" {
     ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 16) # 10.0.0.16, 10.0.0.17, etc.
   }
 
-  user_data = templatefile("${path.module}/templates/server-init.tpl", {
+  user_data = templatefile("${path.module}/templates/init/server.tpl", {
     node_private_ip     = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 16),
     consul_server_ips   = jsonencode([for i in range(var.nomad_server_count) : cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, i + 16)]),
     nomad_server_ips    = jsonencode([for i in range(var.nomad_server_count) : cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, i + 16)]),
@@ -96,8 +96,7 @@ resource "hcloud_server" "nomad_clients_stateful" {
     ip = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 32)
   }
 
-
-  user_data = templatefile("${path.module}/templates/client-init.tpl", {
+  user_data = templatefile("${path.module}/templates/init/client.tpl", {
     node_private_ip   = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 32),
     consul_server_ips = jsonencode([for i in range(var.nomad_server_count) : cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, i + 16)]),
     nomad_server_ips  = jsonencode([for i in range(var.nomad_server_count) : cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, i + 16)]),
@@ -147,7 +146,7 @@ resource "hcloud_server" "nomad_clients_stateless" {
     ip = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 64)
   }
 
-  user_data = templatefile("${path.module}/templates/client-init.tpl", {
+  user_data = templatefile("${path.module}/templates/init/client.tpl", {
     node_private_ip     = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 64),
     consul_server_ips   = jsonencode([for i in range(var.nomad_server_count) : cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, i + 16)]),
     nomad_server_ips    = jsonencode([for i in range(var.nomad_server_count) : cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, i + 16)]),
