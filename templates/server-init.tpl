@@ -13,12 +13,16 @@ write_files:
             client_addr = "0.0.0.0"
             bind_addr = "${node_private_ip}"
             advertise_addr = "${node_private_ip}"
-            # Use JSON-encoded list from Terraform for start_join
-            start_join = ${consul_server_ips}
-            server = false
+            # For Consul servers
+            server = true
+            bootstrap_expect = ${consul_server_count}
+            # Use JSON-encoded list from Terraform for start_join to form cluster
+            retry_join = ${consul_server_ips}
             ui_config {
-                enabled = true # Can disable for clients if not needed
+                enabled = true
             }
+            # Enable HTTP API for management
+            enable_http_cli = true
     -   path:  /etc/systemd/system/consul.service
         permissions: '0644'
         content: |
@@ -43,33 +47,16 @@ write_files:
             data_dir = "/opt/nomad/data"
             datacenter = "hetzner"
             log_level = "INFO"
+            # Nomad Server configuration
             server {
-                enabled = false
-            }
-            client {
                 enabled = true
-                network_interface = "eth0"
-                # Use JSON-encoded list from Terraform for servers
-                servers = ${nomad_server_ips}
-                node_class = "${nomad_node_class}" # Custom class for scheduling
-                options = {
-                    "docker.privileged.enabled" = "false" # Set to "true" only if required by a specific workload
-                    "docker.volumes.enabled"    = "true"
-                    "docker.namespaces.enabled" = "false" # Useful if using Docker's native multi-tenancy (not used here)
-                }
-                # Define host volumes if this is a stateful client
-                % if mount_volumes ~}
-                host_volumes = {
-                    postgres_data = {
-                        path = "/mnt/data/postgres"
-                        read_only = false
-                    }
-                    garage_data = {
-                        path = "/mnt/data/garage"
-                        read_only = false
-                    }
-                }
-                % endif ~}
+                bootstrap_expect = ${nomad_server_count}
+                # List of private IPs for the Nomad servers to join
+                retry_join = ${nomad_server_ips}
+            }
+            # Nomad Client is disabled on server nodes by default for clean separation
+            client {
+                enabled = false
             }
             addresses {
                 http = "0.0.0.0"
@@ -82,7 +69,7 @@ write_files:
                 serf = "${node_private_ip}:4648"
             }
             consul {
-                address = "${node_private_ip}:8500" # Self-reference Consul running on this client
+                address = "${node_private_ip}:8500" # Self-reference Consul running on this server
                 client_auto_join = true
                 auto_advertise = true
             }
@@ -112,22 +99,7 @@ runcmd:
     - echo "Applying sysctl changes..."
     - sysctl --system
 
-    # Mount Hetzner volumes for stateful clients
-    % if mount_volumes ~}
-    - echo "Mounting volumes..."
-    - mkdir -p /mnt/data/postgres
-    - mkdir -p /mnt/data/garage
-    # Format and mount volumes. Hetzner volumes are already formatted if `format = "ext4"` in TF.
-    # So we just mount them.
-    # Use device by-id for stable paths
-    - mount -o discard,defaults /dev/disk/by-id/scsi-0HC_Volume_${volume_names[0]} ${volume_mount_points[0]}
-    - mount -o discard,defaults /dev/disk/by-id/scsi-0HC_Volume_${volume_names[1]} ${volume_mount_points[1]}
-    # Add to fstab for persistence across reboots
-    - echo "/dev/disk/by-id/scsi-0HC_Volume_${volume_names[0]} ${volume_mount_points[0]} ext4 defaults,nofail 0 2" | tee -a /etc/fstab
-    - echo "/dev/disk/by-id/scsi-0HC_Volume_${volume_names[1]} ${volume_mount_points[1]} ext4 defaults,nofail 0 2" | tee -a /etc/fstab
-    % endif ~}
-
-    # Install Docker
+    # Install Docker (Nomad Servers don't *need* Docker, but it's often convenient for management tools)
     - apt-get update
     - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
     - mkdir -p /etc/apt/keyrings
@@ -156,4 +128,4 @@ runcmd:
     - systemctl start consul.service
     - systemctl enable nomad.service
     - systemctl start nomad.service
-    - echo "Nomad client setup complete!"
+    - echo "Nomad server setup complete!"
