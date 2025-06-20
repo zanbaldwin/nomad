@@ -1,0 +1,16 @@
+/.idea/
+
+# OpenTofu state files and sensitive variables
+/.terraform/
+/*.tfplan
+/*.tfstate
+/*.tfstate.*
+/crash.log
+
+# Sensitive variable file
+/terraform.tfvars
+/*.tfvars.json
+
+# Project Specific
+/nomad.log
+/consul.log
