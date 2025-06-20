@@ -49,11 +49,11 @@ resource "hcloud_server" "nomad_servers" {
 
     network {
         network_id = hcloud_network.nomad_cluster_network.id
-        ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 10) # 10.0.0.10, 10.0.0.11, etc.
+        ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 16) # 10.0.0.16, 10.0.0.17, etc.
     }
 
     user_data = templatefile("${path.module}/templates/server-init.tpl", {
-        node_private_ip    = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 10),
+        node_private_ip    = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 16),
         consul_server_ips  = jsonencode(hcloud_server.nomad_servers.*.network[0].ip),
         nomad_server_ips   = jsonencode(hcloud_server.nomad_servers.*.network[0].ip),
         consul_server_count = var.nomad_server_count, # Consul bootstrap_expect will be nomad_server_count
@@ -105,8 +105,8 @@ resource "hcloud_server" "nomad_clients_stateful" {
 
     network {
         network_id = hcloud_network.nomad_cluster_network.id
-        # IP range starting after servers, e.g., 10.0.0.20, 10.0.0.21 etc.
-        ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 20)
+        # IP range starting after servers, e.g., 10.0.0.32, 10.0.0.33 etc.
+        ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 32)
     }
 
     # Attach volumes
@@ -116,7 +116,7 @@ resource "hcloud_server" "nomad_clients_stateful" {
     ]
 
     user_data = templatefile("${path.module}/templates/client-init.tpl", {
-        node_private_ip     = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 20),
+        node_private_ip     = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 32),
         consul_server_ips   = jsonencode(hcloud_server.nomad_servers.*.network[0].ip),
         nomad_server_ips    = jsonencode(hcloud_server.nomad_servers.*.network[0].ip),
         nomad_node_class    = "stateful", # Custom node class for scheduling
@@ -156,12 +156,12 @@ resource "hcloud_server" "nomad_clients_stateless" {
 
     network {
         network_id = hcloud_network.nomad_cluster_network.id
-        # IP range after stateful clients, e.g., 10.0.0.30, 10.0.0.31 etc.
-        ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 30)
+        # IP range after stateful clients, e.g., 10.0.0.64, 10.0.0.65 etc.
+        ip         = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 64)
     }
 
     user_data = templatefile("${path.module}/templates/client-init.tpl", {
-        node_private_ip     = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 30),
+        node_private_ip     = cidrhost(hcloud_network_subnet.nomad_cluster_subnet.ip_range, count.index + 64),
         consul_server_ips   = jsonencode(hcloud_server.nomad_servers.*.network[0].ip),
         nomad_server_ips    = jsonencode(hcloud_server.nomad_servers.*.network[0].ip),
         nomad_node_class    = "stateless", # Custom node class for scheduling
