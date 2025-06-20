@@ -5,10 +5,6 @@ terraform {
             source  = "hetznercloud/hcloud"
             version = "~> 1.51"
         }
-        template = {
-        source  = "hashicorp/template"
-        version = "~> 2.2"
-        }
     }
 }
 
