@@ -62,12 +62,8 @@ write_files:
                 # Define host volumes if this is a stateful client
                 % if mount_volumes ~}
                 host_volumes = {
-                    postgres_data = {
-                        path = "/mnt/data/postgres"
-                        read_only = false
-                    }
-                    garage_data = {
-                        path = "/mnt/data/garage"
+                    stateful_data = {
+                        path = "/mnt/data"
                         read_only = false
                     }
                 }

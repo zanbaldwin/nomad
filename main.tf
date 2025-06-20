@@ -73,20 +73,11 @@ resource "hcloud_server" "nomad_servers" {
 # Nomad Client Instances (Stateful - with attached volumes)
 # -----------------------------------------------------------------------------
 
-resource "hcloud_volume" "stateful_postgres_data" {
+resource "hcloud_volume" "stateful_data" {
   count     = var.nomad_client_stateful_count
-  name      = "${var.project_name}-postgres-data-${count.index}"
-  size      = var.volume_size_postgres
+  name      = "${var.project_name}-stateful-data-${count.index}"
+  size      = var.volume_size_stateful
   location  = var.region # Volume must be in the same location as the server
-  format    = "ext4"
-  automount = false # Manual mount via cloud-init
-}
-
-resource "hcloud_volume" "stateful_garage_data" {
-  count     = var.nomad_client_stateful_count
-  name      = "${var.project_name}-garage-data-${count.index}"
-  size      = var.volume_size_garage
-  location  = var.region
   format    = "ext4"
   automount = false # Manual mount via cloud-init
 }
@@ -113,10 +104,9 @@ resource "hcloud_server" "nomad_clients_stateful" {
     nomad_node_class  = "stateful", # Custom node class for scheduling
     mount_volumes     = true,
     volume_names = [
-      hcloud_volume.stateful_postgres_data[count.index].name,
-      hcloud_volume.stateful_garage_data[count.index].name
+      hcloud_volume.stateful_data[count.index].name
     ],
-    volume_mount_points = ["/mnt/data/postgres", "/mnt/data/garage"]
+    volume_mount_points = ["/mnt/data"]
   })
 
   depends_on = [
@@ -132,16 +122,9 @@ resource "hcloud_server" "nomad_clients_stateful" {
 }
 
 # Volume attachments for stateful clients
-resource "hcloud_volume_attachment" "postgres_attachment" {
+resource "hcloud_volume_attachment" "stateful_attachment" {
   count     = var.nomad_client_stateful_count
-  volume_id = hcloud_volume.stateful_postgres_data[count.index].id
-  server_id = hcloud_server.nomad_clients_stateful[count.index].id
-  automount = false
-}
-
-resource "hcloud_volume_attachment" "garage_attachment" {
-  count     = var.nomad_client_stateful_count
-  volume_id = hcloud_volume.stateful_garage_data[count.index].id
+  volume_id = hcloud_volume.stateful_data[count.index].id
   server_id = hcloud_server.nomad_clients_stateful[count.index].id
   automount = false
 }

@@ -38,23 +38,13 @@ variable "server_type_nomad_client_stateless" {
   default     = "cx22"
 }
 
-variable "volume_size_postgres" {
-  description = "Size of the volume for PostgreSQL data (GB)"
+variable "volume_size_stateful" {
+  description = "Size of the volume for stateful data (GB)"
   type        = number
   default     = 5
   validation {
-    condition     = var.volume_size_postgres >= 5
-    error_message = "PostgreSQL volume size must be at least 5 GB."
-  }
-}
-
-variable "volume_size_garage" {
-  description = "Size of the volume for Garage data (GB)"
-  type        = number
-  default     = 10
-  validation {
-    condition     = var.volume_size_garage >= 10
-    error_message = "Garage volume size must be at least 10 GB."
+    condition     = var.volume_size_stateful >= 5
+    error_message = "Stateful volume size must be at least 5 GB."
   }
 }
 
