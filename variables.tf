@@ -66,3 +66,13 @@ variable "server_client_count" {
   type        = number
   default     = 1
 }
+
+variable "load_balancer_type" {
+  description = "Load balancer type for the cluster"
+  type        = string
+  default     = "lb11"
+  validation {
+    condition     = contains(["lb11", "lb21", "lb31"], var.load_balancer_type)
+    error_message = "Load balancer type must be one of: lb11, lb21, lb31."
+  }
+}
