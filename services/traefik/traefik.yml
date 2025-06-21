@@ -1,0 +1,46 @@
+global:
+    checkNewVersion: false
+    sendAnonymousUsage: false
+
+entryPoints:
+    web:
+        address: ":80"
+    websecure:
+        address: ":443"
+    traefik:
+        address: ":8080"
+
+providers:
+    consul:
+        endpoints:
+            - "{{ env "CONSUL_HTTP_ADDR" }}"
+        watch: true
+    consulCatalog:
+        endpoints:
+            - "{{ env "CONSUL_HTTP_ADDR" }}"
+        exposedByDefault: false
+        watch: true
+
+certificatesResolvers:
+    letsencrypt:
+        acme:
+            email: admin@example.com
+            storage: "consul"
+            storeconfig: true
+            keyType: EC256
+            httpChallenge:
+                entryPoint: web
+
+api:
+    dashboard: true
+    insecure: true
+
+log:
+    level: INFO
+
+accessLog: { }
+
+metrics:
+    prometheus:
+        addEntryPointsLabels: true
+        addServicesLabels: true
