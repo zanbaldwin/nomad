@@ -8,7 +8,7 @@ write_files:
     -   path: '/opt/install-docker.sh'
         permissions: '0755'
         content: |
-            ${indent(12, templatefile("${path}/templates/script/install-docker.sh"))}
+            ${indent(12, file("${path}/templates/script/install-docker.sh"))}
     -   path: '/opt/install-consul.sh'
         permissions: '0755'
         content: |

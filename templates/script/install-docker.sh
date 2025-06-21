@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+# This file is included as-is, and does not pass through templating: do not escape `${}` variables.
+
 apt-get update
 apt-get install apt-transport-https ca-certificates curl lsb-release
 
@@ -9,9 +11,9 @@ curl -fsSL "https://download.docker.com/linux/ubuntu/gpg" -o "/etc/apt/keyrings/
 chmod "a+r" "/etc/apt/keyrings/docker.asc"
 
 . "/etc/os-release"
-export RELEASE="$${UBUNTU_CODENAME:-$${VERSION_CODENAME:-$$(lsb_release -cs)}}"
+export RELEASE="${UBUNTU_CODENAME:-${VERSION_CODENAME:-$(lsb_release -cs)}}"
 # Add the repository to Apt sources:
-echo "deb [arch=$$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $${RELEASE} stable" \
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${RELEASE} stable" \
     | tee "/etc/apt/sources.list.d/docker.list" >"/dev/null"
 
 apt-get update
