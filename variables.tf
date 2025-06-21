@@ -32,3 +32,25 @@ variable "region" {
     error_message = "Region must be one within `eu-central` network zone: fsn1, nbg1, hel1."
   }
 }
+
+variable "server_base_image" {
+  description = "Base image to use for all servers"
+  type        = string
+  default     = "ubuntu24.04"
+}
+
+variable "server_controller_type" {
+  description = "Server type for Nomad Controller node servers"
+  type        = string
+  default     = "cx22"
+}
+
+variable "server_controller_count" {
+  description = "Number of Nomad controller nodes (recommended 3 for production HA)"
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.server_controller_count % 2 == 1 && var.server_controller_count >= 1 && var.server_controller_count <= 7
+    error_message = "Nomad controller count must be an odd number between 1 and 7 (recommended: 1 for dev, 3 for production)."
+  }
+}
