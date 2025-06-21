@@ -50,6 +50,6 @@ while ! curl -fsSL "http://127.0.0.1:8500/v1/status/leader" >'/dev/null' 2>&1; d
 done
 
 CONSUL_HTTP_TOKEN="$${CONSUL_HTTP_TOKEN}" consul acl set-agent-token agent "$${NOMAD_CONSUL_TOKEN}"
-# Restart services to pick up new configuration.
-systemctl restart consul
-systemctl restart nomad
+# Signal services to reload configuration after ACL setup
+systemctl reload consul || systemctl restart consul
+systemctl reload nomad || systemctl restart nomad
