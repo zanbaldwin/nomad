@@ -31,4 +31,6 @@ consul {
     address = "${node_private_ip}:8500"
     client_auto_join = true
     auto_advertise = true
+    # This value will get replaced with the token generated on, and extracted from, the first controller node.
+    token = "{{NOMAD_CONSUL_TOKEN}}"
 }
