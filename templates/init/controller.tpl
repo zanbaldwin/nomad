@@ -87,7 +87,6 @@ runcmd:
     - systemctl start nomad.service
 
     # Bootstrap ACLs (run in background to avoid blocking cloud-init)
-    - nohup /opt/bootstrap-acls.sh > /var/log/bootstrap-acls.log 2>&1 &
-
-    # Setup ACL tokens for non-first controllers (run in background)
-    - nohup /opt/setup-acl-tokens.sh > /var/log/setup-acl-tokens.log 2>&1 &
+    - nohup /opt/bootstrap-acls.sh >'/var/log/bootstrap-acls.log' 2>&1 &
+    # Setup ACL tokens for nodes/agents (run in background)
+    - nohup /opt/setup-acl-tokens.sh >'/var/log/setup-acl-tokens.log' 2>&1 &

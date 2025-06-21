@@ -77,4 +77,4 @@ runcmd:
     - systemctl start nomad.service
 
     # Setup ACL tokens (run in background)
-    - nohup /opt/setup-acl-tokens.sh > /var/log/setup-acl-tokens.log 2>&1 &
+    - nohup /opt/setup-acl-tokens.sh >'/var/log/setup-acl-tokens.log' 2>&1 &
