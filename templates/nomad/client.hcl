@@ -9,12 +9,14 @@ server {
 client {
     enabled = true
     network_interface = "eth0"
-    # Use JSON-encoded list from Terraform for servers
+    # Use JSON-encoded list from OpenTofu for servers.
     servers = ${nomad_controller_ips}
     options = {
-        "docker.privileged.enabled" = "false" # Set to "true" only if required by a specific workload
+        # Set to "true" only if required by a specific workload.
+        "docker.privileged.enabled" = "false"
         "docker.volumes.enabled"    = "true"
-        "docker.namespaces.enabled" = "false" # Useful if using Docker's native multi-tenancy (not used here)
+        # Useful if using Docker's native multi-tenancy (not used here currently).
+        "docker.namespaces.enabled" = "false"
     }
 }
 
@@ -31,7 +33,13 @@ advertise {
 }
 
 consul {
-    address = "127.0.0.1:8500" # Connect to local Consul agent
+    address = "127.0.0.1:8500"
     client_auto_join = true
     auto_advertise = true
+    # This value will get replaced with the token generated on, and extracted from, the first controller node.
+    token = "{{NOMAD_CONSUL_TOKEN}}"
+}
+
+acl {
+    enabled = true
 }
