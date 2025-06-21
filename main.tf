@@ -91,8 +91,8 @@ resource "hcloud_server" "client_nodes" {
   user_data = templatefile("${path.module}/templates/init/client.tpl", {
     path                  = path.module,
     node_private_ip       = cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, count.index + 24),
-    consul_controller_ips = jsonencode([for i in range(var.server_client_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 24)]),
-    nomad_controller_ips  = jsonencode([for i in range(var.server_client_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 24)]),
+    consul_controller_ips = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
+    nomad_controller_ips  = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
   })
 
   depends_on = [
