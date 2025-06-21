@@ -2,12 +2,12 @@
 set -e
 
 echo "Waiting for Consul to be ready..."
-while ! consul members > /dev/null 2>&1; do
+while ! curl -fsSL "http://127.0.0.1:8500/v1/status/leader" > /dev/null 2>&1; do
     sleep 5
 done
 
 echo "Waiting for Nomad to be ready..."
-while ! nomad node status > /dev/null 2>&1; do
+while ! curl -fsSL "http://127.0.0.1:4646/v1/status/leader" > /dev/null 2>&1; do
     sleep 5
 done
 
