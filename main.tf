@@ -42,10 +42,6 @@ resource "hcloud_server" "controller_nodes" {
   server_type = var.server_controller_type
   location    = var.region
   ssh_keys    = [data.hcloud_ssh_key.default.id]
-  public_net {
-    ipv4_enabled = false
-    ipv6_enabled = false
-  }
 
   network {
     network_id = hcloud_network.cluster_network.id
@@ -113,4 +109,63 @@ resource "hcloud_server" "client_nodes" {
     role         = "client"
     node_class   = "stateless"
   }
+}
+
+# Load Balancer
+# =============
+
+# Forward all HTTP(S) traffic (80/443) to all client nodes across the private network.
+
+resource "hcloud_load_balancer" "cluster_lb" {
+  name               = "${var.organization_name}-${var.project_name}-lb"
+  location           = var.region
+  load_balancer_type = var.load_balancer_type
+  labels = {
+    organization = var.organization_name
+    project      = var.project_name
+    role         = "load-balancer"
+  }
+}
+
+resource "hcloud_load_balancer_network" "cluster_lb_network" {
+  load_balancer_id = hcloud_load_balancer.cluster_lb.id
+  network_id       = hcloud_network.cluster_network.id
+  ip               = "10.0.0.10" # Static IP within subnet
+}
+
+resource "hcloud_load_balancer_service" "http" {
+  load_balancer_id = hcloud_load_balancer.cluster_lb.id
+  protocol         = "http"
+  listen_port      = 80
+  destination_port = 80
+  health_check {
+    protocol = "tcp"
+    port     = 80
+    interval = 15
+    timeout  = 10
+    retries  = 3
+  }
+}
+
+resource "hcloud_load_balancer_service" "https" {
+  load_balancer_id = hcloud_load_balancer.cluster_lb.id
+  protocol         = "tcp"
+  listen_port      = 443
+  destination_port = 443
+  health_check {
+    protocol = "tcp"
+    port     = 443
+    interval = 15
+    timeout  = 10
+    retries  = 3
+  }
+}
+
+resource "hcloud_load_balancer_target" "client_targets" {
+  count            = var.server_client_count
+  type             = "server"
+  load_balancer_id = hcloud_load_balancer.cluster_lb.id
+  server_id        = hcloud_server.client_nodes[count.index].id
+  use_private_ip   = true
+  depends_on       = [hcloud_load_balancer_network.cluster_lb_network]
 }
