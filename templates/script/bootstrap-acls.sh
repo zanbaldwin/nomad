@@ -24,6 +24,7 @@ function consul_policy {
     POLICY='agent_prefix "" { policy = "write" }
             node_prefix "" { policy = "write" }
             service_prefix "" { policy = "write" }
+            key_prefix "" { policy = "read" }
             acl = "read"'
     if ! consul acl policy create -name "nomad-agent" -description "Nomad Agent Policy" -rules "$${POLICY}"; then
         echo >&2 'Consul policy already bootstrapped (or failed).'
@@ -34,6 +35,9 @@ function consul_policy {
     export NOMAD_CONSUL_TOKEN="$(cat '/tmp/nomad-consul-token.json' | jq -r '.SecretID')"
     echo "$${NOMAD_CONSUL_TOKEN}" >'/opt/nomad-consul-token'
     echo "NOMAD_CONSUL_TOKEN=$${NOMAD_CONSUL_TOKEN}" >>'/etc/environment'
+    # Write token in Consul KV (using bootstrap token) for other nodes to read (agent token).
+    # The Traefik job needs to set the agent token in order to discover services to route to.
+    consul kv put 'nomad-consul-token' "$${NOMAD_CONSUL_TOKEN}"
     echo "$${NOMAD_CONSUL_TOKEN}"
 }
 
