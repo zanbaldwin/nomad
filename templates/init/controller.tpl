@@ -69,15 +69,15 @@ runcmd:
     # Apply the "vm-max-map-count" setting.
     - sysctl --system
 
-    # Required Tools
-    - apt-get update
-    - apt-get install -y ca-certificates curl jq unzip
-
     # Setup cluster SSH keys
     - mkdir -p "/root/.ssh"
     - chmod 700 "/root/.ssh"
     - ssh-keygen -f "/root/.ssh/cluster" -y >> "/root/.ssh/authorized_keys"
     - chmod 600 "/root/.ssh/authorized_keys"
+
+    # Required Tools
+    - apt-get update
+    - apt-get install -y ca-certificates curl jq unzip
 
     # Install Docker
     # (Nomad controllers don't typically need Docker, but it's often convenient for management tools)
