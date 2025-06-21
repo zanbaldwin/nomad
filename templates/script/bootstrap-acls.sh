@@ -14,7 +14,7 @@ done
 # Bootstrap Consul ACLs (only run on first server)
 if [ "${node_private_ip}" = "$(echo '${consul_controller_ips}' | jq -r '.[0]')" ]; then
     echo "Bootstrapping Consul ACLs..."
-    if ! consul acl bootstrap > /tmp/consul-bootstrap.json 2>/dev/null; then
+    if ! consul acl bootstrap -format=json > /tmp/consul-bootstrap.json 2>/dev/null; then
         echo "Consul ACL already bootstrapped or failed"
     else
         echo "Consul ACL bootstrap successful"
@@ -34,7 +34,8 @@ if [ "${node_private_ip}" = "$(echo '${consul_controller_ips}' | jq -r '.[0]')" 
         # Create token for Nomad agents
         consul acl token create \
             -description "Nomad Agent Token" \
-            -policy-name "nomad-agent" > /tmp/nomad-consul-token.json
+            -policy-name "nomad-agent" \
+            -format=json > /tmp/nomad-consul-token.json
 
         NOMAD_CONSUL_TOKEN=$(cat /tmp/nomad-consul-token.json | jq -r '.SecretID')
         echo "NOMAD_CONSUL_TOKEN=$NOMAD_CONSUL_TOKEN" >> /etc/environment
@@ -42,7 +43,7 @@ if [ "${node_private_ip}" = "$(echo '${consul_controller_ips}' | jq -r '.[0]')" 
 
     # Bootstrap Nomad ACLs
     echo "Bootstrapping Nomad ACLs..."
-    if ! nomad acl bootstrap > /tmp/nomad-bootstrap.json 2>/dev/null; then
+    if ! nomad acl bootstrap -json > /tmp/nomad-bootstrap.json 2>/dev/null; then
         echo "Nomad ACL already bootstrapped or failed"
     else
         echo "Nomad ACL bootstrap successful"
