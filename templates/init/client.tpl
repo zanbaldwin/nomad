@@ -4,22 +4,22 @@ write_files:
     -   path: '/etc/sysctl.d/99-vm-max-map-count.conf'
         permissions: '0644'
         content: |
-            ${indent(12, file("${path.module}/templates/system/99-vm-max-map-count.conf"))}
+            ${indent(12, file("${path}/templates/system/99-vm-max-map-count.conf"))}
     -   path: '/etc/consul.d/consul.hcl'
         permissions: '0644'
         content: |
-            ${indent(12, templatefile("${path.module}/templates/consul/client.hcl", {
+            ${indent(12, templatefile("${path}/templates/consul/client.hcl", {
                 node_private_ip = node_private_ip,
                 consul_server_ips = consul_server_ips
             }))}
     -   path: '/etc/systemd/system/consul.service'
         permissions: '0644'
         content: |
-            ${indent(12, file("${path.module}/templates/system/consul.service"))}
+            ${indent(12, file("${path}/templates/system/consul.service"))}
     -   path: '/etc/nomad.d/nomad.hcl'
         permissions: '0644'
         content: |
-            ${indent(12, templatefile("${path.module}/templates/nomad/client.hcl", {
+            ${indent(12, templatefile("${path}/templates/nomad/client.hcl", {
                 node_private_ip = node_private_ip,
                 nomad_server_ips = nomad_server_ips,
                 nomad_node_class = nomad_node_class,
@@ -29,11 +29,11 @@ write_files:
     -   path: '/etc/systemd/system/nomad.service'
         permissions: '0644'
         content: |
-            ${indent(12, file("${path.module}/templates/system/nomad.service"))}
+            ${indent(12, file("${path}/templates/system/nomad.service"))}
     -   path: '/opt/setup-acl-tokens.sh'
         permissions: '0755'
         content: |
-            ${indent(12, templatefile("${path.module}/templates/scripts/setup-acl-tokens.sh", {
+            ${indent(12, templatefile("${path}/templates/scripts/setup-acl-tokens.sh", {
                 consul_server_ips = consul_server_ips
             }))}
 

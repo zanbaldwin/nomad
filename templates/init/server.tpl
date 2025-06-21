@@ -4,11 +4,11 @@ write_files:
     -   path: '/etc/sysctl.d/99-vm-max-map-count.conf'
         permissions: '0644'
         content: |
-            ${indent(12, file("${path.module}/templates/system/99-vm-max-map-count.conf"))}
+            ${indent(12, file("${path}/templates/system/99-vm-max-map-count.conf"))}
     -   path: '/etc/consul.d/consul.hcl'
         permissions: '0644'
         content: |
-            ${indent(12, templatefile("${path.module}/templates/consul/server.hcl", {
+            ${indent(12, templatefile("${path}/templates/consul/server.hcl", {
                 node_private_ip = node_private_ip,
                 consul_server_count = consul_server_count,
                 consul_server_ips = consul_server_ips
@@ -16,11 +16,11 @@ write_files:
     -   path: '/etc/systemd/system/consul.service'
         permissions: '0644'
         content: |
-            ${indent(12, file("${path.module}/templates/system/consul.service"))}
+            ${indent(12, file("${path}/templates/system/consul.service"))}
     -   path: '/etc/nomad.d/nomad.hcl'
         permissions: '0644'
         content: |
-            ${indent(12, templatefile("${path.module}/templates/nomad/server.hcl", {
+            ${indent(12, templatefile("${path}/templates/nomad/server.hcl", {
                 node_private_ip = node_private_ip,
                 nomad_server_count = nomad_server_count,
                 nomad_server_ips = nomad_server_ips
@@ -28,11 +28,11 @@ write_files:
     -   path: '/etc/systemd/system/nomad.service'
         permissions: '0644'
         content: |
-            ${indent(12, file("${path.module}/templates/system/nomad.service"))}
+            ${indent(12, file("${path}/templates/system/nomad.service"))}
     -   path: '/opt/bootstrap-acls.sh'
         permissions: '0755'
         content: |
-            ${indent(12, templatefile("${path.module}/templates/scripts/bootstrap-acls.sh", {
+            ${indent(12, templatefile("${path}/templates/scripts/bootstrap-acls.sh", {
                 node_private_ip = node_private_ip,
                 consul_server_ips = consul_server_ips
             }))}
