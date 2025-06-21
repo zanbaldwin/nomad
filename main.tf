@@ -95,7 +95,7 @@ resource "hcloud_server" "client_nodes" {
   ssh_keys    = [data.hcloud_ssh_key.default.id]
   public_net {
     ipv4_enabled = false
-    ipv6_enabled = false
+    ipv6_enabled = true
   }
 
   network {
