@@ -20,10 +20,9 @@ write_files:
     -   path: '/etc/consul.d/consul.hcl'
         permissions: '0644'
         content: |
-            ${indent(12, templatefile("${path}/templates/consul/controller.hcl", {
+            ${indent(12, templatefile("${path}/templates/consul/client.hcl", {
                 node_private_ip = node_private_ip,
-                consul_controller_count = consul_controller_count,
-                consul_controller_ips = consul_controller_ips
+                consul_controller_ips = consul_controller_ips,
             }))}
     -   path: '/etc/systemd/system/consul.service'
         permissions: '0644'
@@ -38,21 +37,19 @@ write_files:
     -   path: '/etc/nomad.d/nomad.hcl'
         permissions: '0644'
         content: |
-            ${indent(12, templatefile("${path}/templates/nomad/controller.hcl", {
+            ${indent(12, templatefile("${path}/templates/nomad/client.hcl", {
                 node_private_ip = node_private_ip,
-                nomad_controller_count = nomad_controller_count,
                 nomad_controller_ips = nomad_controller_ips,
             }))}
     -   path: '/etc/systemd/system/nomad.service'
         permissions: '0644'
         content: |
             ${indent(12, file("${path}/templates/system/nomad.service"))}
-    -   path: '/opt/bootstrap-acls.sh'
+    -   path: '/opt/setup-acl-tokens.sh'
         permissions: '0755'
         content: |
-            ${indent(12, templatefile("${path}/templates/script/bootstrap-acls.sh", {
-                node_private_ip = node_private_ip,
-                consul_controller_ips = consul_controller_ips,
+            ${indent(12, templatefile("${path}/templates/script/setup-acl-tokens.sh", {
+                consul_controller_ips = consul_controller_ips
             }))}
 
 runcmd:
@@ -65,7 +62,6 @@ runcmd:
     - apt-get install -y ca-certificates curl jq unzip
 
     # Install Docker
-    # (Nomad controllers don't typically need Docker, but it's often convenient for management tools)
     - bash "/opt/install-docker.sh"
     # Install Consul
     - mkdir -p "/opt/consul/data"
@@ -81,5 +77,5 @@ runcmd:
     - systemctl enable nomad.service
     - systemctl start nomad.service
 
-    # Bootstrap ACLs (run in background to avoid blocking cloud-init)
-    - nohup /opt/bootstrap-acls.sh > /var/log/bootstrap-acls.log 2>&1 &
+    # Setup ACL tokens (run in background)
+    - nohup /opt/setup-acl-tokens.sh > /var/log/setup-acl-tokens.log 2>&1 &

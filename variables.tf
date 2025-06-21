@@ -40,7 +40,7 @@ variable "server_base_image" {
 }
 
 variable "server_controller_type" {
-  description = "Server type for Nomad Controller node servers"
+  description = "Server type for Nomad controller node servers"
   type        = string
   default     = "cx22"
 }
@@ -53,4 +53,16 @@ variable "server_controller_count" {
     condition     = var.server_controller_count % 2 == 1 && var.server_controller_count >= 1 && var.server_controller_count <= 7
     error_message = "Nomad controller count must be an odd number between 1 and 7 (recommended: 1 for dev, 3 for production)."
   }
+}
+
+variable "server_client_type" {
+  description = "Server type for Nomad client node servers"
+  type        = string
+  default     = "cx22"
+}
+
+variable "server_client_count" {
+  description = "Number of Nomad client nodes"
+  type        = number
+  default     = 1
 }

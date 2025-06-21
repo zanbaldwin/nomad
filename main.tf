@@ -64,9 +64,46 @@ resource "hcloud_server" "controller_nodes" {
 
   # Labels for identification
   labels = {
-    project = var.project_name
-    role    = "nomad-controller"
     # Assuming a single shared instance for the (parent) organization
     organization = var.organization_name
+    project      = var.project_name
+    role         = "nomad-controller"
+  }
+}
+
+# Nomad Client Nodes (stateless by default)
+# =========================================
+
+resource "hcloud_server" "client_nodes" {
+  count       = var.server_client_count
+  name        = "${var.organization_name}-${var.project_name}-client-${count.index}"
+  image       = var.server_base_image
+  server_type = var.server_client_type
+  location    = var.region
+  ssh_keys    = [data.hcloud_ssh_key.default.id]
+
+  network {
+    network_id = hcloud_network.cluster_network.id
+    # IP range after controller nodes, e.g., 10.0.0.24, 10.0.0.25 etc.
+    ip = cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, count.index + 24)
+  }
+
+  user_data = templatefile("${path.module}/templates/init/client.tpl", {
+    path                  = path.module,
+    node_private_ip       = cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, count.index + 24),
+    consul_controller_ips = jsonencode([for i in range(var.server_client_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 24)]),
+    nomad_controller_ips  = jsonencode([for i in range(var.server_client_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 24)]),
+  })
+
+  depends_on = [
+    hcloud_server.controller_nodes
+  ]
+
+  labels = {
+    # Assuming a single shared instance for the (parent) organization
+    organization = var.organization_name
+    project      = var.project_name
+    role         = "nomad-client"
+    node_class   = "stateless"
   }
 }
