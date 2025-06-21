@@ -7,6 +7,7 @@ apt-get install -y \
     'apt-transport-https' \
     'ca-certificates' \
     'curl' \
+    'gnupg' \
     'lsb-release'
 
 install -m 0755 -d '/etc/apt/keyrings'
