@@ -24,7 +24,7 @@ providers:
 certificatesResolvers:
     letsencrypt:
         acme:
-            email: admin@example.com
+            email: {{ env "ACME_EMAIL" "admin@local.dev" }}
             storage: "consul"
             storeconfig: true
             keyType: EC256
@@ -33,7 +33,7 @@ certificatesResolvers:
 
 api:
     dashboard: true
-    insecure: true
+    insecure: false
 
 log:
     level: INFO

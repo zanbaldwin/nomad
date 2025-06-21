@@ -4,9 +4,10 @@ variable "system_domain" {
   default     = "local"
 }
 
+
 job "traefik" {
   datacenters = ["hetzner"]
-  type        = "system"
+  type        = "service"
   priority    = 80
 
   group "traefik" {
@@ -43,12 +44,13 @@ job "traefik" {
     }
 
     service {
-      name = "api"
+      name = "traefik-api"
       port = "api"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.api.rule=Host(`api.traefik.${var.system_domain}`)",
-        "traefik.http.routers.api.service=api@internal"
+        "traefik.http.routers.traefik-api.rule=Host(`api.traefik.${var.system_domain}`)",
+        "traefik.http.routers.traefik-api.service=api@internal",
+        "traefik.http.routers.traefik-api.middlewares=auth"
       ]
       check {
         name     = "dashboard"
@@ -59,6 +61,7 @@ job "traefik" {
         timeout  = "2s"
       }
     }
+
 
     task "traefik" {
       driver = "docker"
@@ -75,6 +78,7 @@ job "traefik" {
       }
       env {
         CONSUL_HTTP_ADDR = "${NOMAD_IP_web}:8500"
+        SYSTEM_DOMAIN = var.system_domain
       }
       resources {
         cpu    = 200
