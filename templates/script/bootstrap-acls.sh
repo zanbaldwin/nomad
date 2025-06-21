@@ -67,7 +67,7 @@ if [ "${node_private_ip}" = "$(echo '${consul_controller_ips}' | jq -r '.[0]')" 
     while ! curl -fsSL "http://127.0.0.1:4646/v1/status/leader" >'/dev/null' 2>&1; do
         sleep 5
     done
-    NOMAD_TOKEN="$$(bootstrap_nomad_acl "$${NOMAD_CONSUL_TOKEN}")"
+    NOMAD_TOKEN="$$(bootstrap_nomad_acl)"
 
     chmod 0600 /opt/*-token
 fi

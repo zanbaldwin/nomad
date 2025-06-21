@@ -18,7 +18,7 @@ function wait_for_token_ssh {
     echo "Waiting for ACL bootstrap to complete on first controller node..."
     while true; do
         # CONSUL_HTTP_TOKEN is required for the creation of the NOMAD_CONSUL_TOKEN, so the existence of one implies the existence of the other.
-        if ssh -i "~/.ssh/cluster" -o "StrictHostKeyChecking=no" -o "ConnectTimeout=5" "root@$${FIRST_CONTROLLER_NODE_IP}" "test -f '/opt/nomad-consul-token'" 2>/dev/null; then
+        if ssh -i "/root/.ssh/cluster" -o "StrictHostKeyChecking=accept-new" -o "ConnectTimeout=5" "root@$${FIRST_CONTROLLER_NODE_IP}" "test -f '/opt/nomad-consul-token'" 2>/dev/null; then
             break
         fi
         sleep 10
@@ -34,8 +34,8 @@ if [ "${node_private_ip}" = "$${FIRST_CONTROLLER_NODE_IP}" ]; then
     # Environment variables already set in bootstrapping script.
 else
     wait_for_token_ssh
-    export CONSUL_HTTP_TOKEN="$$(ssh -i '~/.ssh/cluster' -o 'StrictHostKeyChecking=no' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/consul-root-token')"
-    export NOMAD_CONSUL_TOKEN="$$(ssh -i '~/.ssh/cluster' -o 'StrictHostKeyChecking=no' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/nomad-consul-token')"
+    export CONSUL_HTTP_TOKEN="$$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/consul-root-token')"
+    export NOMAD_CONSUL_TOKEN="$$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/nomad-consul-token')"
     # Set environment variables for future use (don't save the Consul root token).
     echo "NOMAD_CONSUL_TOKEN=$${NOMAD_CONSUL_TOKEN}" >> /etc/environment
 fi
