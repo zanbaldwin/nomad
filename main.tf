@@ -21,7 +21,7 @@ data "hcloud_ssh_key" "default" {
 
 # Private network for Nomad/Consul communication
 resource "hcloud_network" "cluster_network" {
-  name     = "${var.project_name}-network"
+  name     = "${var.organization_name}-${var.project_name}-network"
   ip_range = "10.0.0.0/16"
 }
 # Subnet

@@ -1,3 +1,9 @@
+variable "organization_name" {
+  description = "Organization Name"
+  type        = string
+  default     = "my-company"
+}
+
 variable "project_name" {
   description = "Namespace Prefix for Resources"
   type        = string
