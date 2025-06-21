@@ -42,6 +42,10 @@ resource "hcloud_server" "controller_nodes" {
   server_type = var.server_controller_type
   location    = var.region
   ssh_keys    = [data.hcloud_ssh_key.default.id]
+  public_net {
+    ipv4_enabled = false
+    ipv6_enabled = false
+  }
 
   network {
     network_id = hcloud_network.cluster_network.id
@@ -80,6 +84,10 @@ resource "hcloud_server" "client_nodes" {
   server_type = var.server_client_type
   location    = var.region
   ssh_keys    = [data.hcloud_ssh_key.default.id]
+  public_net {
+    ipv4_enabled = false
+    ipv6_enabled = false
+  }
 
   network {
     network_id = hcloud_network.cluster_network.id
