@@ -52,6 +52,13 @@ write_files:
                 node_private_ip = node_private_ip,
                 consul_controller_ips = consul_controller_ips,
             }))}
+    -   path: '/opt/setup-acl-tokens.sh'
+        permissions: '0755'
+        content: |
+            ${indent(12, templatefile("${path}/templates/script/setup-acl-tokens.sh", {
+                node_private_ip = node_private_ip,
+                consul_controller_ips = consul_controller_ips
+            }))}
 
 runcmd:
     - set -ex
@@ -81,3 +88,6 @@ runcmd:
 
     # Bootstrap ACLs (run in background to avoid blocking cloud-init)
     - nohup /opt/bootstrap-acls.sh > /var/log/bootstrap-acls.log 2>&1 &
+
+    # Setup ACL tokens for non-first controllers (run in background)
+    - nohup /opt/setup-acl-tokens.sh > /var/log/setup-acl-tokens.log 2>&1 &
