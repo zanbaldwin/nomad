@@ -1,6 +1,10 @@
 #cloud-config
 
 write_files:
+    -   path: '/root/.ssh/cluster'
+        permissions: '0600'
+        content: |
+            ${indent(12, cluster_ssh_private_key)}
     -   path: '/etc/sysctl.d/99-vm-max-map-count.conf'
         permissions: '0644'
         content: |
@@ -59,6 +63,12 @@ runcmd:
     # Required Tools
     - apt-get update
     - apt-get install -y ca-certificates curl jq unzip
+
+    # Setup cluster SSH keys
+    - mkdir -p "/root/.ssh"
+    - chmod 700 "/root/.ssh"
+    - ssh-keygen -f "/root/.ssh/cluster" -y >> "/root/.ssh/authorized_keys"
+    - chmod 600 "/root/.ssh/authorized_keys"
 
     # Install Docker
     - bash "/opt/install-docker.sh"

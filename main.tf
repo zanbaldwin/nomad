@@ -7,6 +7,10 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.51"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.1"
+    }
   }
 }
 provider "hcloud" {
@@ -14,6 +18,13 @@ provider "hcloud" {
 }
 data "hcloud_ssh_key" "default" {
   name = var.ssh_key_name
+}
+
+# Cluster SSH Key (for inter-node communication)
+# ==============================================
+
+resource "tls_private_key" "cluster_ssh_key" {
+  algorithm = "ED25519"
 }
 
 # Networking
@@ -55,6 +66,8 @@ resource "hcloud_server" "controller_nodes" {
     nomad_controller_ips    = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
     consul_controller_count = var.server_controller_count,
     nomad_controller_count  = var.server_controller_count,
+    cluster_ssh_private_key = tls_private_key.cluster_ssh_key.private_key_openssh,
+    cluster_ssh_public_key  = tls_private_key.cluster_ssh_key.public_key_openssh,
   })
 
   # Ensure network is ready before creating servers
@@ -92,10 +105,12 @@ resource "hcloud_server" "client_nodes" {
   }
 
   user_data = templatefile("${path.module}/templates/init/client.tpl", {
-    path                  = path.module,
-    node_private_ip       = cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, count.index + 24),
-    consul_controller_ips = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
-    nomad_controller_ips  = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
+    path                    = path.module,
+    node_private_ip         = cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, count.index + 24),
+    consul_controller_ips   = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
+    nomad_controller_ips    = jsonencode([for i in range(var.server_controller_count) : cidrhost(hcloud_network_subnet.cluster_subnet.ip_range, i + 16)]),
+    cluster_ssh_private_key = tls_private_key.cluster_ssh_key.private_key_openssh,
+    cluster_ssh_public_key  = tls_private_key.cluster_ssh_key.public_key_openssh,
   })
 
   depends_on = [
