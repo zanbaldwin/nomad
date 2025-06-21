@@ -61,23 +61,23 @@ runcmd:
     - sysctl --system
 
     # Setup cluster SSH keys
-    - mkdir -p "/root/.ssh"
-    - chmod 700 "/root/.ssh"
-    - ssh-keygen -f "/root/.ssh/cluster" -y >> "/root/.ssh/authorized_keys"
-    - chmod 600 "/root/.ssh/authorized_keys"
+    - mkdir -p '/root/.ssh'
+    - chmod 700 '/root/.ssh'
+    - echo "from='10.0.0.0/16',no-port-forwarding,no-X11-forwarding,no-agent-forwarding $(ssh-keygen -f '/root/.ssh/cluster' -y)" >> '/root/.ssh/authorized_keys'
+    - chmod 600 '/root/.ssh/authorized_keys'
 
     # Required Tools
     - apt-get update
     - apt-get install -y ca-certificates curl jq unzip
 
     # Install Docker
-    - bash "/opt/install-docker.sh"
+    - bash '/opt/install-docker.sh'
     # Install Consul
-    - mkdir -p "/opt/consul/data"
-    - bash "/opt/install-consul.sh"
+    - mkdir -p '/opt/consul/data'
+    - bash '/opt/install-consul.sh'
     # Install Nomad
-    - mkdir -p "/opt/nomad/data"
-    - bash "/opt/install-nomad.sh"
+    - mkdir -p '/opt/nomad/data'
+    - bash '/opt/install-nomad.sh'
 
     # SystemD Services
     - systemctl daemon-reload
