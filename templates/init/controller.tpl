@@ -8,9 +8,7 @@ write_files:
     -   path: '/opt/install-docker.sh'
         permissions: '0755'
         content: |
-            ${indent(12, templatefile("${path}/templates/script/install-docker.sh", {
-                consul_version = "1.21.1",
-            }))}
+            ${indent(12, templatefile("${path}/templates/script/install-docker.sh"))}
     -   path: '/opt/install-consul.sh'
         permissions: '0755'
         content: |
