@@ -4,39 +4,36 @@ global:
 
 entryPoints:
     web:
-        address: ":80"
+        address: ':80'
     websecure:
-        address: ":443"
+        address: ':443'
     traefik:
-        address: ":8080"
+        address: ':8080'
 
 providers:
-    consul:
-        endpoints:
-            - "{{ env "CONSUL_HTTP_ADDR" }}"
-        watch: true
     consulCatalog:
-        endpoints:
-            - "{{ env "CONSUL_HTTP_ADDR" }}"
         exposedByDefault: false
-        watch: true
+        endpoint:
+            address: '{{ env "CONSUL_HTTP_ADDR" }}'
+            token: '{{ env "CONSUL_HTTP_TOKEN" }}'
 
 certificatesResolvers:
     letsencrypt:
         acme:
-            email: {{ env "ACME_EMAIL" "admin@local.dev" }}
-            storage: "consul"
-            storeconfig: true
-            keyType: EC256
+            email: '{{ with env "ACME_EMAIL" }}{{ . }}{{ else }}admin@local.dev{{ end }}'
+            storage: '/tmp/acme.json'
+            keyType: 'EC256'
             httpChallenge:
-                entryPoint: web
+                entryPoint: 'web'
 
 api:
     dashboard: true
-    insecure: false
+    insecure: true
+
+ping: {}
 
 log:
-    level: INFO
+    level: 'INFO'
 
 accessLog: { }
 

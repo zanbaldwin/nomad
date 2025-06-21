@@ -4,7 +4,6 @@ variable "system_domain" {
   default     = "local"
 }
 
-
 job "traefik" {
   datacenters = ["hetzner"]
   type        = "service"
@@ -13,6 +12,7 @@ job "traefik" {
   group "traefik" {
     count = 1
     network {
+      mode = "host"
       port "web" {
         static = 80
       }
@@ -55,7 +55,7 @@ job "traefik" {
       check {
         name     = "dashboard"
         type     = "http"
-        path     = "/api/rawdata"
+        path     = "/ping"
         port     = "api"
         interval = "10s"
         timeout  = "2s"
@@ -67,7 +67,7 @@ job "traefik" {
       driver = "docker"
       config {
         image = "traefik:v3.0"
-        ports = ["web", "websecure", "api"]
+        network_mode = "host"
         volumes = [
           "local/traefik.yml:/etc/traefik/traefik.yml:ro"
         ]
@@ -76,8 +76,13 @@ job "traefik" {
         data        = file("./services/traefik/traefik.yml")
         destination = "local/traefik.yml"
       }
+      template {
+        data = "CONSUL_HTTP_TOKEN={{ key \"nomad-consul-token\" }}"
+        destination = "secrets/consul_token"
+        env = true
+      }
       env {
-        CONSUL_HTTP_ADDR = "${NOMAD_IP_web}:8500"
+        CONSUL_HTTP_ADDR = "127.0.0.1:8500"
         SYSTEM_DOMAIN = var.system_domain
       }
       resources {

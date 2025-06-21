@@ -37,7 +37,9 @@ else
     export CONSUL_HTTP_TOKEN="$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/consul-root-token')"
     export NOMAD_CONSUL_TOKEN="$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/nomad-consul-token')"
     # Set environment variables for future use (don't save the Consul root token).
-    echo "NOMAD_CONSUL_TOKEN=$${NOMAD_CONSUL_TOKEN}" >> /etc/environment
+    echo "NOMAD_CONSUL_TOKEN=$${NOMAD_CONSUL_TOKEN}" >>'/etc/environment'
+    # Also save token to file for Nomad job templates to access (Traefik)
+    echo "$${NOMAD_CONSUL_TOKEN}" >'/opt/nomad-consul-token'
 fi
 
 # Update the placeholder in the Nomad configuration with Consul agent token.
@@ -49,7 +51,10 @@ while ! curl -fsSL "http://127.0.0.1:8500/v1/status/leader" >'/dev/null' 2>&1; d
     sleep 5
 done
 
+# Set agent token using the root token temporarily
 CONSUL_HTTP_TOKEN="$${CONSUL_HTTP_TOKEN}" consul acl set-agent-token agent "$${NOMAD_CONSUL_TOKEN}"
-# Signal services to reload configuration after ACL setup
-systemctl reload consul || systemctl restart consul
-systemctl reload nomad || systemctl restart nomad
+# Also store agent token for persistent use
+echo "CONSUL_HTTP_TOKEN=$${NOMAD_CONSUL_TOKEN}" >> /etc/environment
+# Restart Nomad to force re-fingerprinting after ACL tokens are configured. And kill Consul too, just because we're bastards.
+systemctl restart consul
+systemctl restart nomad
