@@ -29,19 +29,19 @@ function wait_for_token_ssh {
 FIRST_CONTROLLER_NODE_IP=$(echo '${consul_controller_ips}' | jq -r '.[0]')
 if [ "${node_private_ip}" = "$${FIRST_CONTROLLER_NODE_IP}" ]; then
     wait_for_token_local
-    export CONSUL_HTTP_TOKEN="$$(cat '/opt/consul-root-token')"
-    export NOMAD_CONSUL_TOKEN="$$(cat '/opt/nomad-consul-token')"
+    export CONSUL_HTTP_TOKEN="$(cat '/opt/consul-root-token')"
+    export NOMAD_CONSUL_TOKEN="$(cat '/opt/nomad-consul-token')"
     # Environment variables already set in bootstrapping script.
 else
     wait_for_token_ssh
-    export CONSUL_HTTP_TOKEN="$$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/consul-root-token')"
-    export NOMAD_CONSUL_TOKEN="$$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/nomad-consul-token')"
+    export CONSUL_HTTP_TOKEN="$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/consul-root-token')"
+    export NOMAD_CONSUL_TOKEN="$(ssh -i '/root/.ssh/cluster' -o 'StrictHostKeyChecking=accept-new' "root@$${FIRST_CONTROLLER_NODE_IP}" 'cat /opt/nomad-consul-token')"
     # Set environment variables for future use (don't save the Consul root token).
     echo "NOMAD_CONSUL_TOKEN=$${NOMAD_CONSUL_TOKEN}" >> /etc/environment
 fi
 
 # Update the placeholder in the Nomad configuration with Consul agent token.
-sed -i "s/{{NOMAD_CONSUL_TOKEN}}/$${NOMAD_CONSUL_TOKEN}/g" /etc/nomad.d/nomad.hcl
+sed -i "s|{{NOMAD_CONSUL_TOKEN}}|$${NOMAD_CONSUL_TOKEN}|g" /etc/nomad.d/nomad.hcl
 
 # Depending how quickly the tokens were generated on the first controller node, SystemD services may still be starting...
 echo "Waiting for Consul to be ready on local machine..."
