@@ -62,12 +62,11 @@ resource "hcloud_server" "controller_nodes" {
     hcloud_network_subnet.cluster_subnet
   ]
 
-  # Labels for identification
   labels = {
     # Assuming a single shared instance for the (parent) organization
     organization = var.organization_name
     project      = var.project_name
-    role         = "nomad-controller"
+    role         = "controller"
   }
 }
 
@@ -103,7 +102,7 @@ resource "hcloud_server" "client_nodes" {
     # Assuming a single shared instance for the (parent) organization
     organization = var.organization_name
     project      = var.project_name
-    role         = "nomad-client"
+    role         = "client"
     node_class   = "stateless"
   }
 }

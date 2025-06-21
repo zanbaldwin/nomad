@@ -47,6 +47,7 @@ write_files:
         permissions: '0755'
         content: |
             ${indent(12, templatefile("${path}/templates/script/setup-acl-tokens.sh", {
+                node_private_ip = node_private_ip,
                 consul_controller_ips = consul_controller_ips
             }))}
 

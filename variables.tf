@@ -36,7 +36,7 @@ variable "region" {
 variable "server_base_image" {
   description = "Base image to use for all servers"
   type        = string
-  default     = "ubuntu24.04"
+  default     = "ubuntu-24.04"
 }
 
 variable "server_controller_type" {
