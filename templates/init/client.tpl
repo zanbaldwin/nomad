@@ -63,7 +63,7 @@ runcmd:
     # Setup cluster SSH keys
     - mkdir -p '/root/.ssh'
     - chmod 700 '/root/.ssh'
-    - echo "from='10.0.0.0/16',no-port-forwarding,no-X11-forwarding,no-agent-forwarding $(ssh-keygen -f '/root/.ssh/cluster' -y)" >> '/root/.ssh/authorized_keys'
+    - echo "from=\"10.0.0.0/16\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding $(ssh-keygen -f '/root/.ssh/cluster' -y)" >> '/root/.ssh/authorized_keys'
     - chmod 600 '/root/.ssh/authorized_keys'
 
     # Required Tools

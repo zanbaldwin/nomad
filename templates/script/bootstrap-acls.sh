@@ -19,11 +19,11 @@ function bootstrap_consul_acl {
 }
 
 function consul_policy {
-    export CONSUL_HTTP_TOKEN="$${1:-$$(cat '/opt/consul-root-token')}"
+    export CONSUL_HTTP_TOKEN="$${1:-$(cat '/opt/consul-root-token')}"
     # Create Nomad agent policy for Consul integration
     POLICY='agent_prefix "" { policy = "write" }
             node_prefix "" { policy = "write" }
-            service_prefix "" { policy = "read" }
+            service_prefix "" { policy = "write" }
             acl = "read"'
     if ! consul acl policy create -name "nomad-agent" -description "Nomad Agent Policy" -rules "$${POLICY}"; then
         echo >&2 'Consul policy already bootstrapped (or failed).'
@@ -31,7 +31,7 @@ function consul_policy {
     # Create token for Nomad agents
     consul acl token create -description "Nomad Agent Token" -policy-name "nomad-agent" -format=json >'/tmp/nomad-consul-token.json'
 
-    export NOMAD_CONSUL_TOKEN="$$(cat '/tmp/nomad-consul-token.json' | jq -r '.SecretID')"
+    export NOMAD_CONSUL_TOKEN="$(cat '/tmp/nomad-consul-token.json' | jq -r '.SecretID')"
     echo "$${NOMAD_CONSUL_TOKEN}" >'/opt/nomad-consul-token'
     echo "NOMAD_CONSUL_TOKEN=$${NOMAD_CONSUL_TOKEN}" >>'/etc/environment'
     echo "$${NOMAD_CONSUL_TOKEN}"
@@ -47,7 +47,7 @@ function bootstrap_nomad_acl {
         return 1
     fi
 
-    export NOMAD_TOKEN="$$(cat '/tmp/nomad-bootstrap.json' | jq -r '.SecretID')"
+    export NOMAD_TOKEN="$(cat '/tmp/nomad-bootstrap.json' | jq -r '.SecretID')"
     echo "$${NOMAD_TOKEN}" >'/opt/nomad-root-token'
     echo "NOMAD_TOKEN=$${NOMAD_TOKEN}" >>'/etc/environment'
     echo "$${NOMAD_TOKEN}"
@@ -60,14 +60,14 @@ if [ "${node_private_ip}" = "$(echo '${consul_controller_ips}' | jq -r '.[0]')" 
     while ! curl -fsSL "http://127.0.0.1:8500/v1/status/leader" >'/dev/null' 2>&1; do
         sleep 5
     done
-    CONSUL_HTTP_TOKEN="$$(bootstrap_consul_acl)"
-    NOMAD_CONSUL_TOKEN="$$(consul_policy "$${CONSUL_HTTP_TOKEN}")"
+    CONSUL_HTTP_TOKEN="$(bootstrap_consul_acl)"
+    NOMAD_CONSUL_TOKEN="$(consul_policy "$${CONSUL_HTTP_TOKEN}")"
 
     echo "Waiting for Nomad to be ready on local machine..."
     while ! curl -fsSL "http://127.0.0.1:4646/v1/status/leader" >'/dev/null' 2>&1; do
         sleep 5
     done
-    NOMAD_TOKEN="$$(bootstrap_nomad_acl)"
+    NOMAD_TOKEN="$(bootstrap_nomad_acl)"
 
     chmod 0600 /opt/*-token
 fi
