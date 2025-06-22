@@ -69,7 +69,7 @@ resource "hcloud_server" "controller_nodes" {
     # Assuming a single shared instance for the (parent) organization
     organization = var.organization_name
     project      = var.project_name
-    role         = "controller"
+    node_class   = "controller"
   }
 }
 
@@ -112,8 +112,7 @@ resource "hcloud_server" "client_nodes" {
     # Assuming a single shared instance for the (parent) organization
     organization = var.organization_name
     project      = var.project_name
-    role         = "client"
-    node_class   = "stateless"
+    node_class   = "client"
   }
 }
 
