@@ -32,7 +32,7 @@ job "traefik" {
         "traefik.http.routers.api.rule=Host(`traefik.${var.system_domain}`)",
         "traefik.http.routers.api.service=api@internal",
         "traefik.http.routers.api.middlewares=auth",
-        "traefik.http.middlewares.auth.basicauth.users=admin:$$2y$$10$$K.0WZ0O7T0QY8kzCzKHIU.lCL2ZQyG8iJG6kJrJvNmzSBl1rYZgRm"
+        "traefik.http.middlewares.auth.basicauth.users=admin:$2y$05$24IZLS.HpBr2YNpzd/5lSuP4eM34f7.LpzWtQC/.h81NFz6rGLpvy"
       ]
       check {
         name     = "alive"
