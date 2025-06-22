@@ -6,11 +6,17 @@ variable "system_domain" {
 
 job "traefik" {
   datacenters = ["hetzner"]
-  type        = "service"
-  priority    = 80
+  type        = "system"
+
+  constraint {
+    attribute = "${node.class}"
+    value = "client"
+  }
 
   group "traefik" {
-    count = 1
+    constraint {
+      distinct_hosts = true
+    }
     network {
       mode = "host"
       port "web" {
