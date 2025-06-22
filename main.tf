@@ -7,10 +7,6 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.51"
     }
-    # tls = {
-    #   source  = "hashicorp/tls"
-    #   version = "~> 4.1"
-    # }
   }
 }
 provider "hcloud" {
@@ -19,14 +15,6 @@ provider "hcloud" {
 data "hcloud_ssh_key" "default" {
   name = var.ssh_key_name
 }
-
-# Cluster SSH Key (for inter-node communication)
-# ==============================================
-
-# Disabled; using pre-generated private key instead.
-# resource "tls_private_key" "cluster_ssh_key" {
-#   algorithm = "ED25519"
-# }
 
 # Networking
 # ==========
