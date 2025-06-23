@@ -83,7 +83,7 @@ job "traefik" {
         destination = "local/traefik.yml"
       }
       template {
-        data = "CONSUL_HTTP_TOKEN={{ key \"nomad-consul-token\" }}"
+        data = "CONSUL_HTTP_TOKEN={{ key \"traefik-consul-token\" }}"
         destination = "secrets/consul_token"
         env = true
       }
